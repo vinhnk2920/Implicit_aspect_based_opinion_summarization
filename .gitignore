@@ -1,0 +1,7 @@
+Python-3.12.0/
+venv/
+yelp/train/
+yelp_academic_dataset_review.json
+yelp_0.json
+yelp_train.json
+yelp_aspect_opinion_pairs.json
