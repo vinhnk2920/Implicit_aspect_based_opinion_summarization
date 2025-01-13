@@ -5,3 +5,5 @@ yelp_academic_dataset_review.json
 yelp_0.json
 yelp_train.json
 baseline/data_building/models/results/
+baseline/data_building/models/glove/
+sqlite-autoconf-3410200/
