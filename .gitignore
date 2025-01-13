@@ -1,7 +1,7 @@
 Python-3.12.0/
 venv/
-yelp/train/
+data/yelp/train/
 yelp_academic_dataset_review.json
 yelp_0.json
 yelp_train.json
-yelp_aspect_opinion_pairs.json
+baseline/data_building/models/results/

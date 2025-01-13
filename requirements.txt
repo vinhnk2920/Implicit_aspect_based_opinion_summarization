@@ -3,3 +3,4 @@ numpy
 matplotlib
 transformers
 spacy
+torch
