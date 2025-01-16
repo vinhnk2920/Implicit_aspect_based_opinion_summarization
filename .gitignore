@@ -7,3 +7,10 @@ yelp_train.json
 baseline/data_building/models/results/
 baseline/data_building/models/glove/
 sqlite-autoconf-3410200/
+Python-3.10.9.tgz
+Python-3.10.9/
+venv10/
+libffi-3.4.4/
+basic_model_weights.pth
+dual_encoder_model_weights.pth
+Miniconda3-latest-Linux-x86_64.sh

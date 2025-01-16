@@ -7,3 +7,6 @@ torch
 scikit-learn
 gensim
 rouge-score
+torch
+torchvision
+torchaudio

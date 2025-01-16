@@ -4,10 +4,17 @@
 
 ```bash
 source venv/bin/activate
+
+source ~/.bashrc
+conda activate py312
+conda deactivate
+
 ```
 
+source ../../../venv/bin/activate
+
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Dataset
