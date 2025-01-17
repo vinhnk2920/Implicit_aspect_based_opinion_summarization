@@ -54,3 +54,17 @@ with open("yelp_aspect_opinion_pairs.json", "w") as output_file:
     json.dump(results, output_file, indent=4)
 
 print("Aspect-opinion extraction complete. Results saved to 'yelp_aspect_opinion_pairs.json'.")
+
+
+input_file = "../results/extraction/yelp_aspect_opinion_pairs.json"
+temp_file = "../results/extraction/yelp_OAs.json"
+
+with open(input_file, "r", encoding="utf-8") as file:
+    data = json.load(file)
+
+filtered_data = [record for record in data if record.get("aspect_opinion_pairs")]
+
+with open(temp_file, "w", encoding="utf-8") as file:
+    json.dump(filtered_data, file, ensure_ascii=False, indent=4)
+
+print(f"Lọc hoàn tất. Dữ liệu đã được lưu vào {temp_file}.")

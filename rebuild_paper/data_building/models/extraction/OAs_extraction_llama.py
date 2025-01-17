@@ -30,7 +30,7 @@ Output: (aspect, opinion)"""
     return result.strip()
 
 # Load Yelp reviews dataset
-with open("../../../data/yelp/train/yelp_train.json", "r") as file:
+with open("../../../../data/yelp/train/yelp_train.json", "r") as file:
     reviews = json.load(file)
 
 # Process each review and extract aspect-opinion pairs
@@ -41,7 +41,7 @@ for review in reviews:
     review["aspect_opinion_pairs"] = aspect_opinion_pairs
 
 # Save the updated dataset with the new field
-with open("aspect_opinion_extraction_llama2.json", "w") as output_file:
+with open("yelp_OAs_llama2.json", "w") as output_file:
     json.dump(reviews, output_file, indent=4)
 
-print("Aspect-opinion extraction complete. Results saved to 'aspect_opinion_extraction_llama2.json'.")
+print("Aspect-opinion extraction complete. Results saved to 'yelp_OAs_llama2.json'.")
