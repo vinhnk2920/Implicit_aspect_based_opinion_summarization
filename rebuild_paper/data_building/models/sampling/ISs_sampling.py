@@ -16,10 +16,10 @@ def compute_rouge1_recall(candidate_is, summary_iss):
     
     return max(recall_scores)
 
-with open("results/pseudo_summary.json", "r") as file:
+with open("../results/pseudo_summary.json", "r") as file:
     summary = json.load(file)
 
-with open("results/yelp_ISs_filtered_candidate.json", "r") as file:
+with open("../results/extraction/yelp_ISs.json", "r") as file:
     reviews = json.load(file)
 
 summary_iss = [summary["text"]]
@@ -46,14 +46,14 @@ else:
 
 sampled_iss = random.choices(candidate_texts, weights=candidate_weights, k=min(len(candidate_texts), num_iss))
 
-output_file_path = "sampled_iss.json"
+output_file_path = "sampled_ISs.json"
 with open(output_file_path, "w") as output_file:
     json.dump(sampled_iss, output_file, indent=4)
 
 print(f"Sampled ISs saved to '{output_file_path}'.")
 
 try:
-    with open("sampled_iss.json", "r") as file:
+    with open("sampled_ISs.json", "r") as file:
         sampled_iss = json.load(file)
         num_sampled_iss = len(sampled_iss)
         print(f"Number of Sampled ISs: {num_sampled_iss}")

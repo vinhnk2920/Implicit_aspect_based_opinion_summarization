@@ -1,83 +1,89 @@
 import json
-import random
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 from gensim.models import KeyedVectors
-from gensim.scripts.glove2word2vec import glove2word2vec
+from sklearn.preprocessing import normalize
+from scipy.spatial.distance import cosine
 
+# Load GloVe embeddings
+word_vectors = KeyedVectors.load_word2vec_format("../glove/glove.6B.300d.word2vec.txt", binary=False)
 
-# glove_file = "glove/glove.6B.300d.txt"
-# word2vec_file = "glove/glove.6B.300d.word2vec.txt"
-# glove2word2vec(glove_file, word2vec_file)
-# print(f"File converted and saved to {word2vec_file}")
+# Load the pseudo summary and review list
+with open('../results/pseudo_summary.json') as f:
+    pseudo_summary = json.load(f)
 
+with open('../results/extraction/yelp_OAs.json') as f:
+    yelp_OAs = json.load(f)
 
-word_vectors = KeyedVectors.load_word2vec_format("glove/glove.6B.300d.word2vec.txt", binary=False)
+# Extract OAs from pseudo_summary and yelp_OAs
+pseudo_OAs = pseudo_summary["aspect_opinion_pairs"]
+review_OAs = [review["aspect_opinion_pairs"] for review in yelp_OAs]
 
-def average_word_vector(text, word_vectors):
-    words = text.split()
-    vectors = [word_vectors[word] for word in words if word in word_vectors]
-    return np.mean(vectors, axis=0) if vectors else np.zeros(word_vectors.vector_size)
+# Function to retrieve vector for a word
+def get_vector(term):
+    try:
+        return word_vectors[term.lower()]
+    except KeyError:
+        return np.zeros(word_vectors.vector_size)  # Return a zero vector if the word is not in the vocabulary
 
-def compute_cosine_similarity(o1, o2, word_vectors):
-    vec1 = average_word_vector(o1, word_vectors)
-    vec2 = average_word_vector(o2, word_vectors)
-    return cosine_similarity([vec1], [vec2])[0][0]
+# Calculate semantic similarity
+def calculate_similarity(o1, o2):
+    v1 = get_vector(o1)
+    v2 = get_vector(o2)
+    return 1 - cosine(v1, v2) if np.any(v1) and np.any(v2) else 0
 
-def convert_to_serializable(obj):
-    if isinstance(obj, np.float32) or isinstance(obj, np.float64):
-        return float(obj)
-    if isinstance(obj, np.ndarray):
-        return obj.tolist()
-    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
+def sample_pairs(summary_OAs, review_OAs, prob_distribution="normal"):
+    popular_pairs = []
+    unpopular_pairs = []
+    
+    summary_aspects = set(a for _, a in summary_OAs)
+    
+    # Tăng số lượng popular pairs
+    for (o, a) in summary_OAs:
+        candidates = [(o2, a2) for review in review_OAs for (o2, a2) in review if a2 == a]
+        similarities = [max(0, calculate_similarity(o, o2)) for o2, _ in candidates]  # Ensure non-negative similarities
 
-with open("results/pseudo_summary.json", "r") as file:
-    pseudo_summary = json.load(file)
+        if candidates and any(similarities):  # Ensure there are valid candidates and similarities
+            probabilities = normalize(np.array(similarities).reshape(1, -1), norm="l1")[0]
+            # Tăng tỷ lệ lấy mẫu lên 80%
+            num_to_sample = min(len(candidates), max(1, int(0.6 * len(candidates))))
+            sampled_indices = np.random.choice(len(candidates), num_to_sample, replace=False, p=probabilities)
+            popular_pairs.extend([candidates[i] for i in sampled_indices])
+    
+    # Tăng số lượng unpopular pairs
+    for review in review_OAs:
+        for (o, a) in review:
+            if a not in summary_aspects:
+                unpopular_pairs.append((o, a))
+    print(len(unpopular_pairs))  # Debug: Kiểm tra tổng số unpopular pairs
 
-with open("results/yelp_OAs_filtered_candidate.json", "r") as file:
-    reviews = json.load(file)
-
-summary_aspects = {item["aspect"] for item in pseudo_summary["sentiment"]}
-summary_opinions = [item["opinion"] for item in pseudo_summary["sentiment"]]
-
-popular_pairs = []
-unpopular_pairs = []
-for review in reviews:
-    for oa in review.get("sentiment", []):
-        aspect = oa["aspect"]
-        opinion = oa["opinion"]
-        if aspect in summary_aspects:
-            similarity = max(
-                compute_cosine_similarity(opinion, o, word_vectors) for o in summary_opinions
-            )
-            popular_pairs.append({"aspect": aspect, "opinion": opinion, "similarity": similarity})
+    if prob_distribution == "normal":
+        # Tăng giá trị trung bình và số lượng lấy mẫu
+        num_samples = np.random.normal(loc=len(unpopular_pairs) * 0.3, scale=50, size=1).astype(int)[0]
+        num_samples = max(100, min(len(unpopular_pairs), num_samples))
+        if len(unpopular_pairs) > 0:
+            indices = np.random.choice(len(unpopular_pairs), num_samples, replace=False)
+            unpopular_pairs = [unpopular_pairs[i] for i in indices]
         else:
-            unpopular_pairs.append({"aspect": aspect, "opinion": opinion})
+            unpopular_pairs = []
+    
+    return popular_pairs, unpopular_pairs
 
-num_popular = max(1, int(np.random.normal(loc=30000, scale=5000)))
-num_unpopular = max(1, int(np.random.normal(loc=5000, scale=1000)))
+# Generate popular and unpopular pairs
+popular, unpopular = sample_pairs(pseudo_OAs, review_OAs)
 
-popular_pairs = sorted(popular_pairs, key=lambda x: x["similarity"], reverse=True)
-popular_samples = popular_pairs[:num_popular]
+# Count the number of popular and unpopular pairs
+popular_count = len(popular)
+unpopular_count = len(unpopular)
 
-unpopular_samples = random.sample(unpopular_pairs, min(len(unpopular_pairs), num_unpopular))
+# Save the output to a JSON file
+output = {
+    "popular_pairs": popular,
+    "unpopular_pairs": unpopular
+}
 
-with open("sampled_oas.json", "w") as output_file:
-    json.dump({"popular": popular_samples, "unpopular": unpopular_samples}, output_file, indent=4, default=convert_to_serializable)
+with open("sampled_OAs.json", "w") as outfile:
+    json.dump(output, outfile, indent=4)
 
-print("Sampled OAs saved to 'sampled_oas.json'.")
-
-file_path = "sampled_oas.json"
-
-try:
-    with open(file_path, "r") as file:
-        data = json.load(file)
-        popular_count = len(data.get("popular", []))
-        unpopular_count = len(data.get("unpopular", []))
-
-        print(f"Number of Popular Samples: {popular_count}")
-        print(f"Number of Unpopular Samples: {unpopular_count}")
-except FileNotFoundError:
-    print(f"The file '{file_path}' does not exist.")
-except json.JSONDecodeError:
-    print(f"The file '{file_path}' is not a valid JSON file.")
+print("Output saved to sampled_OAs.json")
+print(f"Number of Popular Pairs: {popular_count}")
+print(f"Number of Unpopular Pairs: {unpopular_count}")
