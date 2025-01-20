@@ -3,6 +3,7 @@
 ## Set up
 
 ```bash
+source ../../../venv/bin/activate
 source venv/bin/activate
 
 source ~/.bashrc

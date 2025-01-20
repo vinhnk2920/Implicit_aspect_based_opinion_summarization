@@ -13,4 +13,16 @@ venv10/
 libffi-3.4.4/
 basic_model_weights.pth
 dual_encoder_model_weights.pth
+dual_encoder_decoder_model_trained.pth
+evaluation_results.json
 Miniconda3-latest-Linux-x86_64.sh
+results/
+glove/
+outputs/
+preprocessed_yelp_ISs.json
+preprocessed_yelp_OAs.json
+sampled_ISs.json
+sampled_OAs.json
+__pycache__/
+preprocessed_yelp_ISs.json
+preprocessed_yelp_OAs.json
