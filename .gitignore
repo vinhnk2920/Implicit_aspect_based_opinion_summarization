@@ -26,3 +26,4 @@ sampled_OAs.json
 __pycache__/
 preprocessed_yelp_ISs.json
 preprocessed_yelp_OAs.json
+misunderstanding_code/

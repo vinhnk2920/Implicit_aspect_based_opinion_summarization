@@ -11,11 +11,11 @@ def load_json(file_path):
 
 oas_file_path = "../../data_building/outputs/sampled_oas.json"
 iss_file_path = "../../data_building/outputs/sampled_iss.json"
-review_summary_path = "../data_preparation/results/test_data.json"
+review_summary_path = "../data_preparation/results/dev_data.json"
 
 oas_data = load_json(oas_file_path)
 iss_data = load_json(iss_file_path)
-review_summary_data = load_json(review_summary_path)  # Dữ liệu test review-summary
+review_summary_data = load_json(review_summary_path)
 
 class EncoderDataset(Dataset):
     def __init__(self, sentences, tokenizer, max_length=128):
