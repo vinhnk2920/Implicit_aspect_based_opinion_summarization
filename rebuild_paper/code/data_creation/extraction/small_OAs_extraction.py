@@ -42,7 +42,7 @@ def extract_aspect_opinion_pairs(review):
 
     return aspect_opinion_pairs
 
-reviews = filter_yelp_data("../../../data/yelp/train/yelp_train.json", 500000)
+reviews = filter_yelp_data("../../../data/yelp/train/yelp_train.json", 50000)
 print('number of input reviews: ', len(reviews))
 
 results = []
@@ -59,7 +59,7 @@ for review in reviews:
     }
     results.append(oa_review)
 
-output_file = "../results/extraction/extracted_yelp.json"
+output_file = "../results/extraction/small_extracted_yelp.json"
 
 with open(output_file, "w", encoding="utf-8") as file:
     json.dump(results, file, ensure_ascii=False, indent=4)
@@ -67,7 +67,7 @@ with open(output_file, "w", encoding="utf-8") as file:
 filtered_data = [record for record in results if record.get("aspect_opinion_pairs")]
 print(f"Saved 500,000 reviews to {filtered_data}!!!!")
 
-filtered_file = "../results/extraction/yelp_OAs.json"
+filtered_file = "../results/extraction/small_yelp_OAs.json"
 
 with open(filtered_file, "w", encoding="utf-8") as file:
     json.dump(filtered_data, file, ensure_ascii=False, indent=4)
