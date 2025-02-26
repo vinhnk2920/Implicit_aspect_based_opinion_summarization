@@ -27,3 +27,5 @@ __pycache__/
 preprocessed_yelp_ISs.json
 preprocessed_yelp_OAs.json
 misunderstanding_code/
+train/
+trained_dual_encoder_bart/

@@ -1,8 +1,8 @@
 import json
 
-extracted_yelp_file = "../results/extraction/small_extracted_yelp.json"
-oas_file = "../results/extraction/small_yelp_OAs.json"
-iss_file = "../results/extraction/small_yelp_ISs.json"
+extracted_yelp_file = "../results/extraction/extracted_yelp_300.json"
+oas_file = "../results/extraction/yelp_OAs_300.json"
+iss_file = "../results/extraction/yelp_ISs_300.json"
 
 with open(extracted_yelp_file, "r", encoding="utf-8") as file:
     reviews = json.load(file)

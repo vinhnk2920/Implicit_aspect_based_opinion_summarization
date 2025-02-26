@@ -35,9 +35,9 @@ def extract_aspect_opinion_pairs(review):
 
     return aspect_opinion_pairs
 
-input_file = "../../../data/yelp/train/yelp_train_500k.json"
-output_file = "../results/extraction/extracted_yelp_500.json"
-filtered_file = "../results/extraction/yelp_OAs_500.json"
+input_file = "../../../data/yelp/train/yelp_train_300k.json"
+output_file = "../results/extraction/extracted_yelp_300.json"
+filtered_file = "../results/extraction/yelp_OAs_300.json"
 
 # Process NDJSON file line by line
 results = []
