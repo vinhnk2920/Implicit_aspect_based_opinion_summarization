@@ -55,10 +55,13 @@ def extract_opinion_aspect(review):
 yelp_file = "yelp_train_300k.json"
 
 results = []
+start_idx = 20000
+end_idx = 30000
 with open(yelp_file, "r", encoding="utf-8") as file:
     for idx, line in enumerate(file):
-        if idx >= 10000:
-            break
+        if idx < start_idx:
+            continue
+        
         try:
             review_data = json.loads(line.strip())  # Parse each line separately
             review_text = review_data.get("text", "")  # Extract review text
@@ -75,7 +78,7 @@ with open(yelp_file, "r", encoding="utf-8") as file:
             print(f"Skipping line {idx+1} due to JSON error: {e}")
 
 # Save results to a JSON file
-output_file = "yelp_opinion_aspect_pairs_1.json"
+output_file = "yelp_opinion_aspect_pairs_3.json"
 with open(output_file, "w", encoding="utf-8") as outfile:
     json.dump(results, outfile, indent=4, ensure_ascii=False)
 
