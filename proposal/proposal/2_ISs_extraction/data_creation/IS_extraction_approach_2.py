@@ -1,7 +1,7 @@
 import json
 
 # Đọc dữ liệu từ file extracted_OAs.json
-with open("results/extracted_OAs.json", "r", encoding="utf-8") as f:
+with open("results/1st_prompt/ISs_extraction_2/extracted_OAs.json", "r", encoding="utf-8") as f:
     data = json.load(f)
 
 independent_sentences = []
@@ -22,7 +22,7 @@ for entry in data:
             independent_sentences.append(sentence)
 
 # Lưu danh sách câu IS vào file JSON
-with open("results/extracted_ISs.json", "w", encoding="utf-8") as f:
+with open("results/1st_prompt/ISs_extraction_2/extracted_ISs.json", "w", encoding="utf-8") as f:
     json.dump(independent_sentences, f, indent=4, ensure_ascii=False)
 
 print(f"Đã lưu {len(independent_sentences)} câu IS vào extracted_ISs.json")

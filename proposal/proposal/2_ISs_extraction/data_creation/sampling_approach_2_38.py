@@ -114,14 +114,14 @@ def create_mix_structured_data(oas_data, iss_data, embeddings, embedding_matrix)
 # === Main Script === #
 if __name__ == "__main__":
     glove_file = "glove/glove.6B.300d.word2vec.txt"
-    oas_file = "results/extracted_OAs.json"
-    iss_file = "results/extracted_ISs.json"
-    output_file = "results/sampling/mix_structured_data_300_2.json"
+    oas_file = "results/1st_prompt/ISs_extraction_2/extracted_OAs.json"
+    iss_file = "results/1st_prompt/ISs_extraction_2/extracted_ISs.json"
+    output_file = "results/1st_prompt/ISs_extraction_2/mix_structured_data_300_38.json"
     
     embeddings, embedding_matrix = load_glove_embeddings(glove_file)
     
     with open(oas_file, "r", encoding="utf-8") as f:
-        oas_data = json.load(f)[5000:10000]
+        oas_data = json.load(f)[185000:190000]
     with open(iss_file, "r", encoding="utf-8") as f:
         iss_data = json.load(f)
     

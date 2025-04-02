@@ -8,7 +8,7 @@ from nltk.tokenize import sent_tokenize
 nltk.download('punkt')
 
 # Đọc dữ liệu từ file
-with open("results/mix_structured_data_300_OAs.json", "r", encoding="utf-8") as file:
+with open("results/2nd_prompt/mix_structured_data_300_OAs.json", "r", encoding="utf-8") as file:
     data = json.load(file)
 
 for entry in data:
@@ -37,7 +37,7 @@ for entry in data:
     entry["input"]["iss"] = updated_iss
 
 # Lưu lại dữ liệu đã chỉnh sửa
-with open("mix_structured_data_300.json", "w", encoding="utf-8") as file:
+with open("results/2nd_prompt/mix_structured_data_300.json", "w", encoding="utf-8") as file:
     json.dump(data, file, indent=4, ensure_ascii=False)
 
 print("Cập nhật file thành công!")
