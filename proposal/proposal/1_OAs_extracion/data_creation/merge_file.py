@@ -1,7 +1,7 @@
 import json
 
 # Danh sách các file cần gộp
-files = ["results/mix_structured_data_300_1.json", "results/mix_structured_data_300_2.json", "results/mix_structured_data_300_3.json"]
+files = ["results/2nd_prompt/mix_structured_data_300_1.json", "results/2nd_prompt/mix_structured_data_300_2.json", "results/2nd_prompt/mix_structured_data_300_3.json"]
 
 merged_data = []
 
@@ -15,7 +15,7 @@ for file in files:
             merged_data.append(data)
 
 # Ghi dữ liệu hợp nhất vào file mới
-with open("mix_structured_data_300.json", "w", encoding="utf-8") as f:
+with open("results/2nd_prompt/mix_structured_data_300.json", "w", encoding="utf-8") as f:
     json.dump(merged_data, f, indent=4, ensure_ascii=False)
 
 print("Đã gộp xong các file JSON vào merged_data.json")
