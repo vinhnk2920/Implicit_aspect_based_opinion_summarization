@@ -191,7 +191,7 @@ def train_model(model, dataloader, optimizer, num_epochs, device):
 
 
 if __name__ == "__main__":
-    train_file = "../data_creation/results/mix_structured_data_300_proposal.json"
+    train_file = "../data_creation/results/2nd_prompt/mix_structured_data_300_proposal.json"
     test_file = "test_data.json"
     model_path = "trained_model"
 

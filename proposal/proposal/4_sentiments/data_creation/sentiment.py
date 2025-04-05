@@ -6,8 +6,8 @@ from tqdm import tqdm
 sentiment_pipeline = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
 
 # Đọc dữ liệu từ file JSON
-input_file = "results/mix_structured_data_300.json"  # Thay đổi nếu cần
-output_file = "results/mix_structured_data_300_sentiment.json"
+input_file = "results/2nd_prompt/mix_structured_data_300.json"  # Thay đổi nếu cần
+output_file = "results/2nd_prompt/mix_structured_data_300_sentiment.json"
 
 with open(input_file, "r", encoding="utf-8") as f:
     data = json.load(f)

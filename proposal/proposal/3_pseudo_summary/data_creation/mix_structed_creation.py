@@ -26,8 +26,8 @@ def save_json(data, output_path):
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 # Chạy chương trình
-input_file = "results/mix_structured_data_300_sentiment.json"
-output_file = "results/mix_structured_data_300_proposal.json"
+input_file = "results/2nd_prompt/mix_structured_data_300_sentiment.json"
+output_file = "results/2nd_prompt/mix_structured_data_300_proposal.json"
 
 data = load_json(input_file)
 filtered_data = filter_entries(data)
