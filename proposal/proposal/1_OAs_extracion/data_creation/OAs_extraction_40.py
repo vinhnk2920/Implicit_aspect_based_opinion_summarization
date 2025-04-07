@@ -62,7 +62,7 @@ def extract_opinion_aspect_pairs_from_review(review_text):
 
 # Load the Yelp dataset
 input_file = "../../0_data/yelp_reviews_1M.json"
-output_file = "results/1M/list_OAs/extracted_OAs_12.json"
+output_file = "results/1M/list_OAs/extracted_OAs_40.json"
 
 results = []
 
@@ -70,9 +70,9 @@ with open(input_file, "r", encoding="utf-8") as f:
     reviews = json.load(f)  # vì file là dạng list JSON
 
 for i, review in enumerate(reviews):
-    if i < 110000:
+    if i < 390000:
         continue
-    if i >= 120000:
+    if i >= 400000:
         break
     print(f"Processing sample {i}")
 
