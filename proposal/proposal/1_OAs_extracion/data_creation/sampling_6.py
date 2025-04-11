@@ -112,12 +112,12 @@ def create_mix_structured_data(oas_data, iss_data, embeddings, embedding_matrix)
 if __name__ == "__main__":
     glove_file = "glove/glove.6B.300d.word2vec.txt"
     oas_file = "results/1M/extracted_OAs/extracted_OAs_900k.json"
-    output_file = "results/1M/mix_structured_data/mix_structured_data_300_1.json"
+    output_file = "results/1M/mix_structured_data/mix_structured_data_300_6.json"
     
     embeddings, embedding_matrix = load_glove_embeddings(glove_file)
     
     with open(oas_file, "r", encoding="utf-8") as f:
-        oas_data = json.load(f)[0:100000]
+        oas_data = json.load(f)[500000:600000]
     iss_data = []
     
     synthetic_data = create_mix_structured_data(oas_data, iss_data, embeddings, embedding_matrix)

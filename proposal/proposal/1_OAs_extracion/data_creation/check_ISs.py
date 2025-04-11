@@ -1,7 +1,7 @@
 import json
 
-input_file = "results/2nd_prompt/extracted_OAs.json"
-output_file = "checked_ISs.json"
+input_file = "results/1M/extracted_OAs/extracted_OAs_900k.json"
+output_file = "results/1M/checked_ISs.json"
 
 # Load the data
 with open(input_file, "r", encoding="utf-8") as f:

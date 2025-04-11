@@ -1,31 +1,17 @@
 import json
 
-extracted_yelp_file = "../results/extraction/extracted_yelp_300.json"
-oas_file = "../results/extraction/yelp_OAs_300.json"
-iss_file = "../results/extraction/yelp_ISs_300.json"
+# Load data từ file đã merge
+with open('results/extracted_OAs_900k.json', 'r', encoding='utf-8') as f:
+    all_reviews = json.load(f)
 
-with open(extracted_yelp_file, "r", encoding="utf-8") as file:
-    reviews = json.load(file)
-
-with open(oas_file, "r", encoding="utf-8") as file:
-    OA_reviews = json.load(file)
-
-reviews_ids = {review['review_id'] for review in reviews}
-OA_review_ids = {review['review_id'] for review in OA_reviews}
-
-# Correcting the logic for ISs_review_ids
-ISs_review_ids = reviews_ids - OA_review_ids
-
-# Extracting implicit sentences
-implicit_sentences = [
-    review['text'] for review in reviews if review['review_id'] in ISs_review_ids
+# Lọc các review không có trường opinion_aspect_pairs hoặc có mà rỗng
+implicit_reviews = [
+    review for review in all_reviews
+    if 'opinion_aspect_pairs' not in review or not review['opinion_aspect_pairs']
 ]
 
-# Save the implicit sentences to a JSON file
-with open(iss_file, "w", encoding="utf-8") as file:
-    json.dump(implicit_sentences, file, indent=4, ensure_ascii=False)
+# Ghi các review đó ra file mới
+with open('results/extracted_ISs_900k.json', 'w', encoding='utf-8') as f:
+    json.dump(implicit_reviews, f, ensure_ascii=False, indent=2)
 
-print(f"Total reviews processed: {len(reviews)}")
-print(f"Total OAs: {len(OA_reviews)}")
-print(f"Total ISs: {len(implicit_sentences)}")
-print(f"Implicit sentences saved to {iss_file}")
+print(f"✅ Đã lưu {len(implicit_reviews)} review không có opinion_aspect_pairs vào extracted_ISs_900k.json")

@@ -9,6 +9,7 @@ import random
 
 # Set device to GPU if available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("device: ", device)
 
 # === Load GloVe Embeddings === #
 def load_glove_embeddings(filepath):
@@ -110,8 +111,8 @@ def create_mix_structured_data(oas_data, iss_data, embeddings, embedding_matrix)
 # === Main Script === #
 if __name__ == "__main__":
     glove_file = "glove/glove.6B.300d.word2vec.txt"
-    oas_file = "results/2nd_prompt/extracted_OAs.json"
-    output_file = "results/2nd_prompt/mix_structured_data_300_3.json"
+    oas_file = "results/1M/extracted_OAs/extracted_OAs_900k.json"
+    output_file = "results/1M/mix_structured_data/mix_structured_data_300_3.json"
     
     embeddings, embedding_matrix = load_glove_embeddings(glove_file)
     
