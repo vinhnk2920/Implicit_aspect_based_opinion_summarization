@@ -6,8 +6,9 @@ merged_data = []
 # Adjust this path if files are in a subfolder
 folder_path = 'results/1M/list_OAs/'  
 
-for i in range(1, 11):
+for i in range(1, 91):
     filename = os.path.join(folder_path, f"extracted_OAs_{i}.json")
+    print(f"Processing: {filename}")
     with open(filename, 'r', encoding='utf-8') as f:
         data = json.load(f)
         if isinstance(data, list):
@@ -18,5 +19,5 @@ for i in range(1, 11):
             print(f"Unknown format in file: {filename}")
 
 # Save merged data
-with open('results/1M/extracted_OAs_500k.json', 'w', encoding='utf-8') as f:
+with open('results/1M/extracted_OAs/extracted_OAs_900k.json', 'w', encoding='utf-8') as f:
     json.dump(merged_data, f, ensure_ascii=False, indent=2)
