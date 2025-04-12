@@ -126,7 +126,7 @@ if __name__ == "__main__":
     embeddings, embedding_matrix = load_glove_embeddings(glove_file)
     
     with open(oas_file, "r", encoding="utf-8") as f:
-        oas_data = json.load(f)[500000:600000]
+        oas_data = json.load(f)[250000:300000]
     with open(iss_file, "r", encoding="utf-8") as f:
         iss_data = json.load(f)
     

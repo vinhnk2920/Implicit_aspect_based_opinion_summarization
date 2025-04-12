@@ -50,24 +50,29 @@ def contains_first_person_pronoun(text):
     return bool(re.search(first_person_pronouns, text, flags=re.IGNORECASE))
 
 def is_valid_summary(review, other_reviews):
-    if contains_first_person_pronoun(review["text"]):
-        return False
-    if not re.match(r'^[a-zA-Z0-9\s.,!?]+$', review["text"]):
+    # Không hợp lệ nếu không có opinion_aspect_pairs hoặc danh sách này rỗng
+    if "opinion_aspect_pairs" not in review or not review["opinion_aspect_pairs"]:
         return False
     
-    aspects_in_summary = {a for a, _ in review["aspect_opinion_pairs"]}
+    if contains_first_person_pronoun(review["text"]):
+        return False
+    
+    if not re.match(r'^[a-zA-Z0-9\s.,!?]+$', review["text"]):
+        return False
+
+    aspects_in_summary = {a for a, _ in review["opinion_aspect_pairs"]}
     aspects_in_other_reviews = {
-        a for other_review in other_reviews for a, _ in other_review["aspect_opinion_pairs"]
+        a for other_review in other_reviews for a, _ in other_review["opinion_aspect_pairs"]
     }
     return aspects_in_summary.issubset(aspects_in_other_reviews)
 
 # === Sample OAs and ISs === #
 def sample_oas_and_iss(summary, candidate_reviews, iss_data, sample_sizes, embeddings, embedding_matrix):
-    summary_aspects = {a for a, _ in summary["aspect_opinion_pairs"]}
+    summary_aspects = {a for a, _ in summary["opinion_aspect_pairs"]}
     popular_oas, unpopular_oas = [], []
     
     for review in candidate_reviews:
-        for oa in review["aspect_opinion_pairs"]:
+        for oa in review["opinion_aspect_pairs"]:
             if oa[0] in summary_aspects:
                 popular_oas.append(oa)
             else:
@@ -92,8 +97,8 @@ def sample_oas_and_iss(summary, candidate_reviews, iss_data, sample_sizes, embed
 # === Create Mix-Structured Data === #
 def create_mix_structured_data(oas_data, iss_data, embeddings, embedding_matrix):
     synthetic_data = []
-    
-    for idx, summary in enumerate(random.sample(oas_data, len(oas_data))):
+
+    for idx, summary in enumerate(oas_data):  # chạy theo thứ tự, không random nữa
         print(f"Processing summary {idx+1}/{len(oas_data)} - ID: {summary['review_id']}")
         candidate_reviews = [r for r in oas_data if r["review_id"] != summary["review_id"]]
         if not is_valid_summary(summary, candidate_reviews):
@@ -101,27 +106,27 @@ def create_mix_structured_data(oas_data, iss_data, embeddings, embedding_matrix)
             continue
         
         print("Valid summary:", summary["review_id"])
-        sample_sizes = {"popular": {"mean": 6, "std": 2}, "unpopular": {"mean": 4, "std": 1}, "IS": {"mean": 6, "std": 2}}
+        sample_sizes = {"popular": {"mean": 4, "std": 2}, "unpopular": {"mean": 4, "std": 2}, "IS": {"mean": 2, "std": 1}}
         popular_oas, unpopular_oas, iss = sample_oas_and_iss(summary, candidate_reviews, iss_data, sample_sizes, embeddings, embedding_matrix)
         
         synthetic_data.append({
             "summary": summary["text"],
             "input": {"oas": popular_oas + unpopular_oas, "iss": iss}
         })
-    
+
     return synthetic_data
 
 # === Main Script === #
 if __name__ == "__main__":
     glove_file = "glove/glove.6B.300d.word2vec.txt"
-    oas_file = "results/extraction/yelp_OAs_300.json"
-    iss_file = "results/extraction/yelp_ISs_300.json"
-    output_file = "results/sampling/mix_structured_data_300_2.json"
+    oas_file = "../extraction/results/extracted_OAs_1M.json"
+    iss_file = "../extraction/results/extracted_ISs_1M.json"
+    output_file = "results/list/mix_structured_data_300_1.json"
     
     embeddings, embedding_matrix = load_glove_embeddings(glove_file)
     
     with open(oas_file, "r", encoding="utf-8") as f:
-        oas_data = json.load(f)[100000:200000]
+        oas_data = json.load(f)[0:50000]
     with open(iss_file, "r", encoding="utf-8") as f:
         iss_data = json.load(f)
     

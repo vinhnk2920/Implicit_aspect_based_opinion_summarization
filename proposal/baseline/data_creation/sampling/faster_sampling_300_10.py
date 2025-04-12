@@ -121,12 +121,12 @@ if __name__ == "__main__":
     glove_file = "glove/glove.6B.300d.word2vec.txt"
     oas_file = "../extraction/results/extracted_OAs_1M.json"
     iss_file = "../extraction/results/extracted_ISs_1M.json"
-    output_file = "results/list/mix_structured_data_300_4.json"
+    output_file = "results/list/mix_structured_data_300_10.json"
     
     embeddings, embedding_matrix = load_glove_embeddings(glove_file)
     
     with open(oas_file, "r", encoding="utf-8") as f:
-        oas_data = json.load(f)[150000:200000]
+        oas_data = json.load(f)[450000:500000]
     with open(iss_file, "r", encoding="utf-8") as f:
         iss_data = json.load(f)
     
