@@ -9,6 +9,7 @@ import random
 
 # Set device to GPU if available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
 
 # === Load GloVe Embeddings === #
 def load_glove_embeddings(filepath):
@@ -106,7 +107,10 @@ def create_mix_structured_data(oas_data, iss_data, embeddings, embedding_matrix)
             continue
         
         print("Valid summary:", summary["review_id"])
-        sample_sizes = {"popular": {"mean": 4, "std": 2}, "unpopular": {"mean": 4, "std": 2}, "IS": {"mean": 2, "std": 1}}
+        # OLD
+        sample_sizes = {"popular": {"mean": 6, "std": 2}, "unpopular": {"mean": 4, "std": 1}, "IS": {"mean": 6, "std": 2}} 
+        # NEW
+        # sample_sizes = {"popular": {"mean": 4, "std": 2}, "unpopular": {"mean": 4, "std": 2}, "IS": {"mean": 2, "std": 1}}
         popular_oas, unpopular_oas, iss = sample_oas_and_iss(summary, candidate_reviews, iss_data, sample_sizes, embeddings, embedding_matrix)
         
         synthetic_data.append({
@@ -121,7 +125,7 @@ if __name__ == "__main__":
     glove_file = "glove/glove.6B.300d.word2vec.txt"
     oas_file = "../extraction/results/extracted_OAs_1M.json"
     iss_file = "../extraction/results/extracted_ISs_1M.json"
-    output_file = "results/list/mix_structured_data_300_10.json"
+    output_file = "results/list_old_sampling/mix_structured_data_300_10.json"
     
     embeddings, embedding_matrix = load_glove_embeddings(glove_file)
     
