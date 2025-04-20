@@ -92,11 +92,23 @@ def create_mix_structured_data(oas_data, iss_data, embeddings, embedding_matrix)
     
     for idx, summary in enumerate(random.sample(oas_data, len(oas_data))):
         print(f"Processing summary {idx+1}/{len(oas_data)} - ID: {summary['review_id']}")
+
+        # Bỏ qua nếu không có opinion_aspect_pairs hoặc rỗng
+        if "opinion_aspect_pairs" not in summary or not summary["opinion_aspect_pairs"]:
+            print(f"Skipping summary {summary['review_id']} due to no opinion_aspect_pairs")
+            continue
+
         candidate_reviews = [r for r in oas_data if r["review_id"] != summary["review_id"]]
+
+        # Bỏ qua các candidate reviews không có opinion_aspect_pairs
+        candidate_reviews = [
+            r for r in candidate_reviews if "opinion_aspect_pairs" in r and r["opinion_aspect_pairs"]
+        ]
+        
         if not is_valid_summary(summary, candidate_reviews):
             print(f"Skipping invalid summary {summary['review_id']}")
             continue
-        
+
         print("Valid summary:", summary["review_id"])
         sample_sizes = {"popular": {"mean": 6, "std": 2}, "unpopular": {"mean": 4, "std": 1}}
         popular_oas, unpopular_oas = sample_oas_and_iss(summary, candidate_reviews, iss_data, sample_sizes, embeddings, embedding_matrix)
@@ -111,8 +123,8 @@ def create_mix_structured_data(oas_data, iss_data, embeddings, embedding_matrix)
 # === Main Script === #
 if __name__ == "__main__":
     glove_file = "glove/glove.6B.300d.word2vec.txt"
-    oas_file = "results/1M/extracted_OAs/extracted_OAs_900k.json"
-    output_file = "results/1M/mix_structured_data/mix_structured_data_300_3.json"
+    oas_file = "results/1M/extracted_OAs/extracted_OAs_1M.json"
+    output_file = "results/1M/mix_structured_data/list/mix_structured_data_1M_3.json"
     
     embeddings, embedding_matrix = load_glove_embeddings(glove_file)
     
