@@ -61,8 +61,8 @@ def extract_opinion_aspect_pairs_from_review(review_text):
     return opinion_aspect_pairs
 
 # Load the Yelp dataset
-input_file = "../../0_data/yelp_reviews_1M_to_1M5.json"
-output_file = "results/1M5/list_OAs/extracted_OAs_123.json"
+input_file = "../../0_data/results/yelp_reviews_1M_random_p1.json"
+output_file = "results/1M_random/list_OA/extracted_OAs_23.json"
 
 results = []
 
