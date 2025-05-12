@@ -63,11 +63,9 @@ def is_valid_summary(review, other_reviews):
     return aspects_in_summary.issubset(aspects_in_other_reviews)
 
 def sample_oas_and_iss(summary, candidate_reviews, iss_data, sample_sizes, embeddings, embedding_matrix):
-    # Chuyển aspect_opinion_pairs từ string về list nếu cần
     summary_aspects = {a for a, _ in summary["opinion_aspect_pairs"]}
-
     popular_oas, unpopular_oas = [], []
-
+    
     for review in candidate_reviews:
         for oa in review["opinion_aspect_pairs"]:
             if oa[0] in summary_aspects:
@@ -75,56 +73,90 @@ def sample_oas_and_iss(summary, candidate_reviews, iss_data, sample_sizes, embed
             else:
                 unpopular_oas.append(oa)
 
-    sampled_popular = []
+    # Bước 1: Giữ các opinion gốc trong summary
+    sampled_popular = summary["opinion_aspect_pairs"].copy()
+
+    # Bước 2: Tính số lượng popular cần thêm
+    max_popular = int(np.random.normal(sample_sizes["popular"]["mean"], sample_sizes["popular"]["std"]))
+    max_popular = max(len(sampled_popular), max_popular)  # đảm bảo ít nhất giữ lại những cái gốc
+    remaining = max_popular - len(sampled_popular)
+
+    # Bước 3: Gợi ý thêm các opinion gần nhất theo aspect
+    candidate_extensions = []
     for aspect in summary_aspects:
-        similar_oas = [oa for oa in popular_oas if oa[0] == aspect]
-        if similar_oas:
-            similarities = [compute_semantic_similarity(summary["text"], oa[1], embeddings, embedding_matrix) for oa in similar_oas]
-            sampled_popular.append(similar_oas[np.argmax(similarities)])
+        original_opinions = [op for asp, op in sampled_popular if asp == aspect]
+        candidates = [oa for oa in popular_oas if oa[0] == aspect and oa not in sampled_popular]
+        
+        for oa in candidates:
+            sim_scores = [
+                compute_semantic_similarity(opinion_summary, oa[1], embeddings, embedding_matrix)
+                for opinion_summary in original_opinions
+            ]
+            avg_sim = sum(sim_scores) / len(sim_scores)
+            candidate_extensions.append((avg_sim, oa))
+    
+    # Bước 4: Chọn các OA có similarity cao nhất
+    candidate_extensions.sort(reverse=True, key=lambda x: x[0])
+    for _, oa in candidate_extensions:
+        if oa not in sampled_popular and len(sampled_popular) < max_popular:
+            sampled_popular.append(oa)
+        if len(sampled_popular) >= max_popular:
+            break
 
-    sampled_unpopular = random.sample(unpopular_oas, min(len(unpopular_oas), int(sample_sizes["unpopular"]["mean"])))
+    return sampled_popular, unpopular_oas
 
-    return sampled_popular, sampled_unpopular  # Thêm return để sử dụng kết quả
-
-# === Create Mix-Structured Data === #
 def create_mix_structured_data(oas_data, iss_data, embeddings, embedding_matrix):
     synthetic_data = []
-    
-    for idx, summary in enumerate(random.sample(oas_data, len(oas_data))):
-        print(f"Processing summary {idx+1}/{len(oas_data)} - ID: {summary['review_id']}")
 
-        # Bỏ qua nếu không có opinion_aspect_pairs hoặc rỗng
+    for idx, summary in enumerate(random.sample(oas_data, len(oas_data))):
+        print(f"Processing summary {idx + 1}/{len(oas_data)} - ID: {summary['review_id']}")
+
         if "opinion_aspect_pairs" not in summary or not summary["opinion_aspect_pairs"]:
             print(f"Skipping summary {summary['review_id']} due to no opinion_aspect_pairs")
             continue
 
         candidate_reviews = [r for r in oas_data if r["review_id"] != summary["review_id"]]
+        candidate_reviews = [r for r in candidate_reviews if "opinion_aspect_pairs" in r and r["opinion_aspect_pairs"]]
 
-        # Bỏ qua các candidate reviews không có opinion_aspect_pairs
-        candidate_reviews = [
-            r for r in candidate_reviews if "opinion_aspect_pairs" in r and r["opinion_aspect_pairs"]
-        ]
-        
         if not is_valid_summary(summary, candidate_reviews):
             print(f"Skipping invalid summary {summary['review_id']}")
             continue
 
         print("Valid summary:", summary["review_id"])
-        sample_sizes = {"popular": {"mean": 6, "std": 2}, "unpopular": {"mean": 4, "std": 1}}
-        popular_oas, unpopular_oas = sample_oas_and_iss(summary, candidate_reviews, iss_data, sample_sizes, embeddings, embedding_matrix)
-        
+
+        sample_sizes = {
+            "popular": {"mean": 6, "std": 2},
+            "unpopular": {"mean": 4, "std": 1}
+        }
+
+        # Lấy popular và unpopular OAs
+        popular_oas, unpopular_oas = sample_oas_and_iss(
+            summary, candidate_reviews, iss_data, sample_sizes, embeddings, embedding_matrix
+        )
+
+        # Random số lượng unpopular OAs (dùng phân phối chuẩn)
+        num_unpopular = int(np.random.normal(sample_sizes["unpopular"]["mean"], sample_sizes["unpopular"]["std"]))
+        num_unpopular = max(0, num_unpopular)
+        sampled_unpopular = random.sample(unpopular_oas, min(len(unpopular_oas), num_unpopular))
+
+        # Tạo sample
         synthetic_data.append({
             "summary": summary["text"],
-            "input": {"oas": popular_oas + unpopular_oas, "iss": []}
+            "summary_oas": summary["opinion_aspect_pairs"],  # Giữ lại OAs gốc
+            "input": {
+                "oas": popular_oas + sampled_unpopular,
+                "iss": []  # Tạm thời chưa dùng
+            }
         })
-    
+
     return synthetic_data
+
 
 # === Main Script === #
 if __name__ == "__main__":
     glove_file = "glove/glove.6B.300d.word2vec.txt"
-    oas_file = "results/OA_extraction/extracted_OAs_amazon_500k.json"
-    output_file = "results/sampling/mix_structured_data_amazon_4.json"
+    oas_file = "results/OA_extraction/extracted_OAs_filtered_amazon_500k.json"
+    output_file = "results/sampling/mix_structured_data_amazon_1.json"
     
     embeddings, embedding_matrix = load_glove_embeddings(glove_file)
     
