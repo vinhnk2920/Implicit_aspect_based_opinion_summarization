@@ -156,7 +156,7 @@ def create_mix_structured_data(oas_data, iss_data, embeddings, embedding_matrix)
 if __name__ == "__main__":
     glove_file = "glove/glove.6B.300d.word2vec.txt"
     oas_file = "results/OA_extraction/extracted_OAs_filtered_amazon_500k.json"
-    output_file = "results/filtered_sampling/mix_structured_data_amazon_1.json"
+    output_file = "results/filtered_sampling/mix_structured_data_amazon_4.json"
     
     embeddings, embedding_matrix = load_glove_embeddings(glove_file)
     
