@@ -78,21 +78,45 @@ def sample_oas_and_iss(summary, candidate_reviews, iss_data, sample_sizes, embed
                 popular_oas.append(oa)
             else:
                 unpopular_oas.append(oa)
-    
-    sampled_popular = []
+
+    # === STEP 1: Khởi tạo sampled_popular bằng OA từ summary
+    sampled_popular = summary["opinion_aspect_pairs"].copy()
+
+    # === STEP 2: Bổ sung thêm 2 OA gần nhất cho mỗi aspect
     for aspect in summary_aspects:
-        similar_oas = [oa for oa in popular_oas if oa[0] == aspect]
-        if similar_oas:
-            similarities = [compute_semantic_similarity(summary["text"], oa[1], embeddings, embedding_matrix) for oa in similar_oas]
-            sampled_popular.append(similar_oas[np.argmax(similarities)])
-    
+        original_opinions = [op for asp, op in sampled_popular if asp == aspect]
+        if not original_opinions:
+            continue
+
+        # Loại bỏ các OA đã có
+        candidates = [oa for oa in popular_oas if oa[0] == aspect and oa not in sampled_popular]
+        if candidates:
+            scored_candidates = []
+            for oa in candidates:
+                sim_scores = [
+                    compute_semantic_similarity(opinion_summary, oa[1], embeddings, embedding_matrix)
+                    for opinion_summary in original_opinions
+                ]
+                avg_sim = sum(sim_scores) / len(sim_scores)
+                scored_candidates.append((avg_sim, oa))
+
+            scored_candidates.sort(reverse=True, key=lambda x: x[0])
+            top_k = 2
+            top_oas = [oa for _, oa in scored_candidates[:top_k]]
+
+            for oa in top_oas:
+                if oa not in sampled_popular:
+                    sampled_popular.append(oa)
+
+    # === STEP 3: Lấy unpopular OAs
     sampled_unpopular = random.sample(unpopular_oas, min(len(unpopular_oas), int(sample_sizes["unpopular"]["mean"])))
-    
+
+    # === STEP 4: Lấy ISS bằng ROUGE
     scores = [(is_text, compute_rouge_recall(summary["text"], is_text)) for is_text in iss_data]
     sorted_iss = sorted(scores, key=lambda x: x[1], reverse=True)
     num_samples = max(1, int(np.random.normal(sample_sizes["IS"]["mean"], sample_sizes["IS"]["std"])))
     sampled_iss = [is_text for is_text, _ in sorted_iss[:num_samples]]
-    
+
     return sampled_popular, sampled_unpopular, sampled_iss
 
 # === Create Mix-Structured Data === #
@@ -123,9 +147,9 @@ def create_mix_structured_data(oas_data, iss_data, embeddings, embedding_matrix)
 # === Main Script === #
 if __name__ == "__main__":
     glove_file = "glove/glove.6B.300d.word2vec.txt"
-    oas_file = "results/extracted_OAs_amazon_500k.json"
-    iss_file = "results/extracted_ISs_amazon_500k.json"
-    output_file = "results/sampling_list/mix_structured_data_amazon_500k_1.json"
+    oas_file = "results/extracted_OAs_filtered_amazon_500k.json"
+    iss_file = "results/extracted_ISs_filtered_amazon_500k.json"
+    output_file = "results/sampling_filtered_list/mix_structured_data_amazon_500k_1.json"
     
     embeddings, embedding_matrix = load_glove_embeddings(glove_file)
     
