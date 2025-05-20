@@ -1,11 +1,12 @@
 import json
-from datasets import Dataset
 import os
 import torch
 import torch.nn as nn
+from torch.optim.lr_scheduler import CosineAnnealingLR
+from torch.utils.data import DataLoader
 from transformers import BartTokenizer, BartForConditionalGeneration
 from transformers.modeling_outputs import BaseModelOutput
-from torch.optim.lr_scheduler import CosineAnnealingLR
+from datasets import Dataset
 
 
 class DualEncoderBART(nn.Module):
@@ -65,6 +66,10 @@ class DualEncoderBART(nn.Module):
         self.tokenizer = BartTokenizer.from_pretrained(load_directory)
 
 
+# Load tokenizer globally for use in collate_fn
+bart_model_name = "facebook/bart-large"
+tokenizer = BartTokenizer.from_pretrained(bart_model_name)
+
 def collate_fn(batch):
     iss_texts = []
     targets = []
@@ -118,7 +123,6 @@ def train_model(model, dataloader, optimizer, num_epochs, device):
             epoch_loss += loss.item()
 
         avg_epoch_loss = epoch_loss / len(dataloader)
-        scheduler.step(avg_epoch_loss)
         print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {avg_epoch_loss}")
 
 
@@ -127,21 +131,32 @@ if __name__ == "__main__":
     test_file = "amazon_test.json"
     model_path = "amazon_IS_only"
 
+    # === LOAD & FLATTEN DATA === #
     with open(train_file, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    def flatten_dict(d):
-        return json.dumps(d) if isinstance(d, dict) else d
+    def flatten_entry(entry):
+        # Convert sentiment dicts to strings
+        if "input" in entry:
+            if "iss" in entry["input"]:
+                for item in entry["input"]["iss"]:
+                    if isinstance(item.get("sentiment"), dict):
+                        item["sentiment"] = json.dumps(item["sentiment"])
 
-    for entry in data:
-        for i, is_entry in enumerate(entry["input"]["iss"]):
-            entry["input"]["iss"][i]["sentiment"] = flatten_dict(is_entry["sentiment"])
+            if "oas" in entry["input"]:
+                new_oas = []
+                for oa in entry["input"]["oas"]:
+                    if len(oa) == 3 and isinstance(oa[2], dict):
+                        oa[2] = json.dumps(oa[2])
+                    new_oas.append(oa)
+                entry["input"]["oas"] = new_oas
+        return entry
 
-    dataset = Dataset.from_list(data)
+    flattened_data = [flatten_entry(e) for e in data]
+    dataset = Dataset.from_list(flattened_data)
 
-    bart_model_name = "facebook/bart-large"
+    # === MODEL INIT === #
     model = DualEncoderBART(bart_model_name)
-    tokenizer = BartTokenizer.from_pretrained(bart_model_name)
     optimizer = torch.optim.Adam(
         model.parameters(),
         lr=5e-5,
@@ -149,11 +164,8 @@ if __name__ == "__main__":
         eps=1e-08
     )
 
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=4, shuffle=True, collate_fn=collate_fn)
+    dataloader = DataLoader(dataset, batch_size=4, shuffle=True, collate_fn=collate_fn)
     train_model(model, dataloader, optimizer, num_epochs=10, device="cuda" if torch.cuda.is_available() else "cpu")
-
-    if not os.path.exists(model_path):
-        os.makedirs(model_path)
 
     model.save(model_path)
     print(f"Model and tokenizer saved at {model_path}")
