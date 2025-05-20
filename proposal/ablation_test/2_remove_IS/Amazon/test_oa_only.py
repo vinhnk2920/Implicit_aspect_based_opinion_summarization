@@ -74,7 +74,8 @@ for entry in tqdm(test_data, desc="Evaluating"):
         oas_with_sentiment.append((aspect, opinion, sentiment))
 
     # Convert OAs with sentiment to input text
-    oas_text = " ".join([f"[OA] {a}: {o} ({s})" for a, o, s in oas_with_sentiment])
+    # oas_text = " ".join([f"[OA] {a}: {o} ({s})" for a, o, s in oas_with_sentiment])
+    oas_text = " ".join([f"[OA] {a}: {o} with sentiment {s}" for a, o, s in oas_with_sentiment])
 
     tokenizer = model.tokenizer
     oas_input = tokenizer(oas_text, return_tensors="pt", truncation=True, padding=True, max_length=512).to(device)
