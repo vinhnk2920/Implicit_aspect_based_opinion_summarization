@@ -13,7 +13,7 @@ def compute_self_bleu(generated_summaries):
 
 # Example usage:
 import json
-with open("results/31.18/generated_results_amazon.json") as f:
+with open("results/30.40/no_sentiment_amazon.json") as f:
     data = json.load(f)
 
 generated_summaries = [d["generated_summary"] for d in data]
