@@ -18,7 +18,7 @@ def extract_aspect_opinion_pairs(sentence):
     return pairs
 
 # Load model
-model_path = "amazon_proposal_1"
+model_path = "amazon_no_sentiment"
 model = DualEncoderBART()
 model.load(model_path)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -88,7 +88,7 @@ for entry in test_data:
     })
 
 # Save
-output_file = "generated_results_amazon.json"
+output_file = "no_sentiment_amazon.json"
 with open(output_file, "w", encoding="utf-8") as f:
     json.dump(extracted_results, f, ensure_ascii=False, indent=4)
 
