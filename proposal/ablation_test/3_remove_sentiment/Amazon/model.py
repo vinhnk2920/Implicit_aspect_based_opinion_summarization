@@ -47,6 +47,45 @@ class DualEncoderBART(nn.Module):
         )
 
         return decoder_outputs.logits
+    
+    def generate(self, oas_input, iss_input, max_length=256, min_length=100, num_beams=5):
+        """
+        Generate a summary using the dual encoder.
+        """
+        # Encode Opinion Aspects (OA)
+        oa_encoder = self.bart_oa.get_encoder()
+        oa_outputs = oa_encoder(input_ids=oas_input["input_ids"], attention_mask=oas_input["attention_mask"])
+        ho = oa_outputs.last_hidden_state
+
+        # Encode Implicit Sentences (IS)
+        is_encoder = self.bart_is.get_encoder()
+        is_outputs = is_encoder(input_ids=iss_input["input_ids"], attention_mask=iss_input["attention_mask"])
+        hi = is_outputs.last_hidden_state
+
+        # Combine Context Vectors
+        min_seq_len = min(ho.size(1), hi.size(1))
+        ho, hi = ho[:, :min_seq_len, :], hi[:, :min_seq_len, :]
+        exp_ao = torch.softmax(torch.matmul(ho, self.v_o) / self.temperature, dim=-1)
+        exp_ai = torch.softmax(torch.matmul(hi, self.v_i) / self.temperature, dim=-1)
+        lambda_o = exp_ao / (exp_ao + exp_ai)
+        lambda_i = 1 - lambda_o
+        print("Lambda_o:", lambda_o.mean().item(), "Lambda_i:", lambda_i.mean().item())
+        ct = lambda_o.unsqueeze(-1) * ho + lambda_i.unsqueeze(-1) * hi
+        print("CT mean:", ct.mean().item(), "CT std:", ct.std().item())
+
+        encoder_output = BaseModelOutput(last_hidden_state=ct)
+        outputs = self.bart_oa.generate(
+            encoder_outputs=encoder_output,
+            attention_mask=oas_input["attention_mask"],  
+            max_length=max_length,
+            min_length=min_length,
+            # num_beams=num_beams,
+            do_sample=True,
+            early_stopping=True
+        )
+
+        generated_summary = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return generated_summary
 
     def save(self, save_directory):
         if not os.path.exists(save_directory):
