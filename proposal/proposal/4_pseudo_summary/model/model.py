@@ -107,6 +107,7 @@ class DualEncoderBART(nn.Module):
             attention_mask=oas_input["attention_mask"],  
             max_length=max_length,
             min_length=min_length,
+            # num_beams=num_beams,
             do_sample=True,
             early_stopping=True
         )
@@ -191,9 +192,9 @@ def train_model(model, dataloader, optimizer, num_epochs, device):
 
 
 if __name__ == "__main__":
-    train_file = "../data_creation/results/2nd_prompt/mix_structured_data_300_proposal.json"
+    train_file = "../data_creation/results/1M_random/mix_structured_data_proposal_1M_random_keep_OA.json"
     test_file = "test_data.json"
-    model_path = "trained_model"
+    model_path = "trained_model_1M_random_keep_OA"
 
     with open(train_file, "r", encoding="utf-8") as f:
         data = json.load(f)
