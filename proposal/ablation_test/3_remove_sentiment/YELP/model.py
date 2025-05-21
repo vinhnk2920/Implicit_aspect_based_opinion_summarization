@@ -131,12 +131,10 @@ def collate_fn(batch):
     targets = []
 
     for item in batch:
-        # Không dùng sentiment nữa — chỉ lấy aspect và opinion
         oas_text = " ".join([
-            f"[OA] {aspect}: {opinion}" for aspect, opinion, _ in item["input"]["oas"]
+            f"[OA] {aspect}: {opinion}" for aspect, opinion in item["input"]["oas"]
         ])
 
-        # Không dùng sentiment nữa — chỉ lấy text của IS
         iss_text = " ".join([
             f"[IS] {is_entry['text']}" for is_entry in item["input"]["iss"]
         ])
@@ -145,7 +143,6 @@ def collate_fn(batch):
         iss_texts.append(iss_text)
         targets.append(item["summary"])
 
-    # Tokenize và pad
     oas_inputs = tokenizer(oas_texts, return_tensors="pt", padding=True, truncation=True, max_length=512)
     iss_inputs = tokenizer(iss_texts, return_tensors="pt", padding=True, truncation=True, max_length=512)
     target_inputs = tokenizer(targets, return_tensors="pt", padding=True, truncation=True, max_length=512)
