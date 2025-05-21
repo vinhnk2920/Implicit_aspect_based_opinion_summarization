@@ -200,6 +200,21 @@ if __name__ == "__main__":
     with open(train_file, "r", encoding="utf-8") as f:
         data = json.load(f)
     print(len(data))
+    # Loại bỏ trường sentiment khỏi OAs và ISs
+    for entry in data:
+        # Bỏ sentiment trong OAs
+        cleaned_oas = []
+        for oa in entry["input"]["oas"]:
+            if len(oa) >= 2:
+                cleaned_oas.append([oa[0], oa[1]])  # Chỉ giữ aspect và opinion
+        entry["input"]["oas"] = cleaned_oas
+
+        # Bỏ sentiment trong ISS
+        cleaned_iss = []
+        for is_entry in entry["input"]["iss"]:
+            cleaned_iss.append({"text": is_entry["text"]})  # Chỉ giữ text
+        entry["input"]["iss"] = cleaned_iss
+
     dataset = Dataset.from_list(data)
 
     bart_model_name = "facebook/bart-large"
