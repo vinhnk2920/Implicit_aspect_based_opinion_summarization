@@ -3,9 +3,26 @@ import torch
 import spacy
 from rouge import Rouge
 from model import DualEncoderBART  # Đảm bảo model này đã có hàm generate
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, TextClassificationPipeline
 
 # Load spaCy model
 nlp = spacy.load("en_core_web_trf")
+
+# Load sentiment model
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"🔧 Using device: {device}")
+sentiment_tokenizer = AutoTokenizer.from_pretrained("siebert/sentiment-roberta-large-english")
+sentiment_model = AutoModelForSequenceClassification.from_pretrained("siebert/sentiment-roberta-large-english").to(device)
+sentiment_pipeline = TextClassificationPipeline(
+    model=sentiment_model,
+    tokenizer=sentiment_tokenizer,
+    device=0 if device.type == "cuda" else -1,
+    truncation=True
+)
+
+def get_sentiment_label(text):
+    result = sentiment_pipeline(text)[0]
+    return result["label"].lower()
 
 def extract_aspect_opinion_pairs(sentence):
     doc = nlp(sentence)
@@ -18,13 +35,13 @@ def extract_aspect_opinion_pairs(sentence):
     return pairs
 
 # Load model
-model_path = "amazon_proposal_1"
+model_path = "trained_baseline_amazon"
 model = DualEncoderBART()
 model.load(model_path)
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 model.eval()
-print("Model loaded.")
+tokenizer = model.tokenizer
+print("✅ Model loaded.")
 
 # Load test data
 test_file = "amazon_test.json"
@@ -35,7 +52,7 @@ rouge_evaluator = Rouge()
 rouge_scores = []
 extracted_results = []
 
-print(f"Total samples: {len(test_data)}")
+print(f"📦 Total samples: {len(test_data)}")
 for entry in test_data:
     reviews = [v for k, v in entry.items() if k.startswith("rev")]
     summaries = {k: v for k, v in entry.items() if k.startswith("summ")}
@@ -52,19 +69,23 @@ for entry in test_data:
                 else:
                     iss.append(sentence)
 
-    # Convert OAs and ISs to text
-    oas_text = " ".join([f"[OA] {a}: {o}" for a, o in oas])
-    iss_text = " ".join([f"[IS] {s}" for s in iss])
+    # Convert OAs and ISs to text, including sentiment
+    oas_text = " ".join([
+        f"[OA] {a}: {o} with sentiment {get_sentiment_label(o)}"
+        for a, o in oas
+    ])
+    iss_text = " ".join([
+        f"[IS] {s} with sentiment {get_sentiment_label(s)}"
+        for s in iss
+    ])
 
     # Tokenize input
-    tokenizer = model.tokenizer
     oas_input = tokenizer(oas_text, return_tensors="pt", truncation=True, padding=True, max_length=512).to(device)
     iss_input = tokenizer(iss_text, return_tensors="pt", truncation=True, padding=True, max_length=512).to(device)
 
     # Generate prediction
     with torch.no_grad():
         pred = model.generate(oas_input, iss_input, max_length=256, min_length=100, num_beams=5)
-    # predicted_summary = tokenizer.decode(pred[0], skip_special_tokens=True)
     predicted_summary = pred
 
     # Compute ROUGE for each candidate summary
@@ -87,16 +108,16 @@ for entry in test_data:
         "rouge_score": best_rouge,
     })
 
-# Save
+# Save results
 output_file = "generated_results_amazon.json"
 with open(output_file, "w", encoding="utf-8") as f:
     json.dump(extracted_results, f, ensure_ascii=False, indent=4)
 
-# Average ROUGE scores
+# Compute average ROUGE scores
 average_rouge = {
     "rouge-1": sum(score["rouge-1"]["f"] for score in rouge_scores) / len(rouge_scores),
     "rouge-2": sum(score["rouge-2"]["f"] for score in rouge_scores) / len(rouge_scores),
     "rouge-l": sum(score["rouge-l"]["f"] for score in rouge_scores) / len(rouge_scores),
 }
-print("Average ROUGE:", average_rouge)
-print(f"Results saved to {output_file}")
+print("📊 Average ROUGE:", average_rouge)
+print(f"📄 Results saved to {output_file}")
