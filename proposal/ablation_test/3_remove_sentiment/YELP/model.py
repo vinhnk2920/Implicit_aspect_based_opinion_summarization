@@ -131,21 +131,21 @@ def collate_fn(batch):
     targets = []
 
     for item in batch:
+        # Không dùng sentiment nữa — chỉ lấy aspect và opinion
         oas_text = " ".join([
-            f"[OA] {aspect}: {opinion} with sentiment {json.loads(sentiment)['label']}" 
-            if isinstance(sentiment, str) else f"[OA] {aspect}: {opinion} with sentiment {sentiment['label']}"
-            for aspect, opinion, sentiment in item["input"]["oas"]
+            f"[OA] {aspect}: {opinion}" for aspect, opinion, _ in item["input"]["oas"]
         ])
+
+        # Không dùng sentiment nữa — chỉ lấy text của IS
         iss_text = " ".join([
-            f"[IS] {is_entry['text']} with sentiment {json.loads(is_entry['sentiment'])['label']}" 
-            if isinstance(is_entry['sentiment'], str) else f"[IS] {is_entry['text']} with sentiment {is_entry['sentiment']['label']}"
-            for is_entry in item["input"]["iss"]
+            f"[IS] {is_entry['text']}" for is_entry in item["input"]["iss"]
         ])
+
         oas_texts.append(oas_text)
         iss_texts.append(iss_text)
         targets.append(item["summary"])
 
-    # Tokenize and pad inputs
+    # Tokenize và pad
     oas_inputs = tokenizer(oas_texts, return_tensors="pt", padding=True, truncation=True, max_length=512)
     iss_inputs = tokenizer(iss_texts, return_tensors="pt", padding=True, truncation=True, max_length=512)
     target_inputs = tokenizer(targets, return_tensors="pt", padding=True, truncation=True, max_length=512)
@@ -156,6 +156,7 @@ def collate_fn(batch):
         "decoder_input": target_inputs["input_ids"],
         "labels": target_inputs["input_ids"]
     }
+
 
 def train_model(model, dataloader, optimizer, num_epochs, device):
     model.to(device)
@@ -192,27 +193,13 @@ def train_model(model, dataloader, optimizer, num_epochs, device):
 
 
 if __name__ == "__main__":
-    train_file = "results/mix_structured_data_proposal_1M_random.json"
+    train_file = "results/mix_structured_data_proposal_1M_random_keep_OA.json"
     test_file = "test_data.json"
-    model_path = "trained_model_1M_random"
+    model_path = "trained_YELP_without_sentiment"
 
     with open(train_file, "r", encoding="utf-8") as f:
         data = json.load(f)
     print(len(data))
-
-    def flatten_dict(d):
-        """ Chuyển đổi dict thành chuỗi JSON để tránh lỗi PyArrow """
-        return json.dumps(d) if isinstance(d, dict) else d
-
-    # Chuẩn hóa dữ liệu để tránh lỗi nested dictionary
-    for entry in data:
-        for i, oa in enumerate(entry["input"]["oas"]):
-            # Chuyển dict sentiment thành string JSON
-            entry["input"]["oas"][i][2] = flatten_dict(oa[2])
-
-        for i, is_entry in enumerate(entry["input"]["iss"]):
-            # Chuyển dict sentiment thành string JSON
-            entry["input"]["iss"][i]["sentiment"] = flatten_dict(is_entry["sentiment"])
     dataset = Dataset.from_list(data)
 
     bart_model_name = "facebook/bart-large"

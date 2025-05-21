@@ -8,9 +8,6 @@ from model import DualEncoderBART
 # Load spaCy model for extracting aspect-opinion pairs
 nlp = spacy.load("en_core_web_trf")
 
-# Load sentiment analysis model
-sentiment_pipeline = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english", device=0 if torch.cuda.is_available() else -1)
-
 def extract_aspect_opinion_pairs(sentence):
     """Extract aspect-opinion pairs from a sentence."""
     doc = nlp(sentence)
@@ -23,7 +20,7 @@ def extract_aspect_opinion_pairs(sentence):
     return aspect_opinion_pairs
 
 # Initialize model and tokenizer
-model_path = "trained_model_1M_random"
+model_path = "trained_YELP_without_sentiment"
 model = DualEncoderBART()
 model.load(model_path)
 print("Model loaded successfully.")
@@ -63,24 +60,12 @@ for entry in test_data:
             else:
                 iss.append(sentence)
 
-    # Batch sentiment analysis for OAs
-    oas_texts = [f"{aspect}: {opinion}" for aspect, opinion in oas]
-    oas_sentiments = sentiment_pipeline(oas_texts)
-    oas_with_sentiment = [(aspect, opinion, sentiment) for (aspect, opinion), sentiment in zip(oas, oas_sentiments)]
-
-    # Batch sentiment analysis for ISs
-    iss_sentiments = sentiment_pipeline(iss)
-    iss_with_sentiment = [{"text": text, "sentiment": sentiment} for text, sentiment in zip(iss, iss_sentiments)]
-
-    # Convert OAs and ISs to text with sentiment
     oas_text = " ".join([
-        f"[OA] {aspect}: {opinion} with sentiment {sentiment['label']}" 
-        for aspect, opinion, sentiment in oas_with_sentiment
+        f"[OA] {aspect}: {opinion}" for aspect, opinion in oas
     ])
-    
+
     iss_text = " ".join([
-        f"[IS] {is_entry['text']} with sentiment {is_entry['sentiment']['label']}" 
-        for is_entry in iss_with_sentiment
+        f"[IS] {sentence}" for sentence in iss
     ])
 
     # Tokenize inputs
@@ -109,7 +94,7 @@ for entry in test_data:
     })
 
 # Save results to a JSON file
-output_file = "generated_results.json"
+output_file = "Yelp_without_sentiment.json"
 with open(output_file, "w", encoding="utf-8") as f:
     json.dump(extracted_results, f, ensure_ascii=False, indent=4)
 
