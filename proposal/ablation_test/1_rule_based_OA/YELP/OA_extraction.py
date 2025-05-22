@@ -42,27 +42,22 @@ input_file = "results/yelp_reviews_1M.json"
 output_file = "results/extracted_yelp.json"
 filtered_file = "results/yelp_OAs_1M.json"
 
-# === COUNT TOTAL LINES FOR tqdm === #
+# === LOAD WHOLE JSON LIST === #
 with open(input_file, "r", encoding="utf-8") as f:
-    total_lines = sum(1 for _ in f)
+    reviews = json.load(f)
 
-# === PROCESS FILE LINE BY LINE WITH tqdm === #
+# === PROCESS ALL REVIEWS === #
 results = []
-with open(input_file, "r", encoding="utf-8") as f:
-    for line in tqdm(f, total=total_lines, desc="🔍 Extracting OA pairs"):
-        try:
-            review = json.loads(line.strip())
-            review_id = review.get("review_id", "")
-            review_text = review.get("text", "")
-            pairs = extract_aspect_opinion_pairs(review_text)
-            review["aspect_opinion_pairs"] = pairs
-            results.append({
-                "review_id": review_id,
-                "text": review_text,
-                "aspect_opinion_pairs": pairs
-            })
-        except json.JSONDecodeError as e:
-            print(f"⚠️ Skipping invalid JSON line: {e}")
+for review in tqdm(reviews, desc="🔍 Extracting OA pairs"):
+    review_id = review.get("review_id", "")
+    review_text = review.get("text", "")
+    pairs = extract_aspect_opinion_pairs(review_text)
+    review["aspect_opinion_pairs"] = pairs
+    results.append({
+        "review_id": review_id,
+        "text": review_text,
+        "aspect_opinion_pairs": pairs
+    })
 
 # === SAVE EXTRACTED OA RESULTS === #
 with open(output_file, "w", encoding="utf-8") as f:
