@@ -1,9 +1,11 @@
 import spacy
 import json
+from tqdm import tqdm
 
-# Load spaCy's dependency parser (use transformer-based model for better accuracy)
+# Load spaCy's dependency parser (transformer-based for better accuracy)
 nlp = spacy.load("en_core_web_trf")
 
+# === RULE-BASED OA EXTRACTION === #
 def extract_aspect_opinion_pairs(review):
     doc = nlp(review)
     aspect_opinion_pairs = []
@@ -35,37 +37,40 @@ def extract_aspect_opinion_pairs(review):
 
     return aspect_opinion_pairs
 
+# === FILE PATHS === #
 input_file = "results/yelp_reviews_1M.json"
 output_file = "results/extracted_yelp.json"
 filtered_file = "results/yelp_OAs_1M.json"
 
-# Process NDJSON file line by line
+# === COUNT TOTAL LINES FOR tqdm === #
+with open(input_file, "r", encoding="utf-8") as f:
+    total_lines = sum(1 for _ in f)
+
+# === PROCESS FILE LINE BY LINE WITH tqdm === #
 results = []
 with open(input_file, "r", encoding="utf-8") as f:
-    for line in f:
+    for line in tqdm(f, total=total_lines, desc="🔍 Extracting OA pairs"):
         try:
             review = json.loads(line.strip())
-            review_id = review["review_id"]
-            print(review_id)
-            review_text = review["text"]
+            review_id = review.get("review_id", "")
+            review_text = review.get("text", "")
             pairs = extract_aspect_opinion_pairs(review_text)
             review["aspect_opinion_pairs"] = pairs
-            oa_review = {
+            results.append({
                 "review_id": review_id,
                 "text": review_text,
                 "aspect_opinion_pairs": pairs
-            }
-            results.append(oa_review)
+            })
         except json.JSONDecodeError as e:
-            print(f"Skipping invalid JSON line: {e}")
+            print(f"⚠️ Skipping invalid JSON line: {e}")
 
-# Save extracted results
-with open(output_file, "w", encoding="utf-8") as file:
-    json.dump(results, file, ensure_ascii=False, indent=4)
-print(f"Saved {len(results)} reviews to {output_file}!")
+# === SAVE EXTRACTED OA RESULTS === #
+with open(output_file, "w", encoding="utf-8") as f:
+    json.dump(results, f, ensure_ascii=False, indent=4)
+print(f"✅ Đã lưu {len(results)} reviews vào {output_file}")
 
-# Filter and save reviews with aspect-opinion pairs
-filtered_data = [record for record in results if record.get("aspect_opinion_pairs")]
-with open(filtered_file, "w", encoding="utf-8") as file:
-    json.dump(filtered_data, file, ensure_ascii=False, indent=4)
-print(f"Saved {len(filtered_data)} reviews with OA pairs to {filtered_file}!")
+# === FILTER AND SAVE REVIEWS WITH OA PAIRS ONLY === #
+filtered_data = [r for r in results if r["aspect_opinion_pairs"]]
+with open(filtered_file, "w", encoding="utf-8") as f:
+    json.dump(filtered_data, f, ensure_ascii=False, indent=4)
+print(f"✅ Đã lọc và lưu {len(filtered_data)} review có OA vào {filtered_file}")
