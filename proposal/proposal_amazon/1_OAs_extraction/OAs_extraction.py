@@ -49,8 +49,8 @@ def extract_opinion_aspect_pairs_from_review(review_text):
     return opinion_aspect_pairs
 
 # Load JSONL file
-input_file = "../0_data/results/training/amazon_training_500k.jsonl"
-output_file = "results/OA_extraction/lists/amazon_OAs_500k_1.json"
+input_file = "../0_data/results/training/amazon_training_500k_filtered.jsonl"
+output_file = "results/OA_extraction/filter_lists/amazon_OAs_500k_1.json"
 
 results = []
 
