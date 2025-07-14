@@ -27,8 +27,8 @@ sentiment_pipeline = TextClassificationPipeline(
 )
 
 # Đọc dữ liệu
-input_file = "results/1M_random/mix_structured_data_1M_random_keep_OA.json"
-output_file = "results/1M_random/mix_structured_data_sentiment_1M_random_keep_OA.json"
+input_file = "results/1M_random/mix_structured_data_filtered_amazon_IS_augmentation.json"
+output_file = "results/1M_random/mix_structured_data_sentiment_1M_IS_augmentation.json"
 
 with open(input_file, "r", encoding="utf-8") as f:
     data = json.load(f)
