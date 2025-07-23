@@ -1,21 +1,23 @@
 import json
-
-# Danh sách các file cần gộp
-files = ["results/2nd_prompt/mix_structured_data_300_1.json", "results/2nd_prompt/mix_structured_data_300_2.json", "results/2nd_prompt/mix_structured_data_300_3.json"]
+import os
 
 merged_data = []
 
-# Đọc dữ liệu từ từng file và thêm vào danh sách merged_data
-for file in files:
-    with open(file, "r", encoding="utf-8") as f:
+# Adjust this path if files are in a subfolder
+folder_path = 'results/1M_random/mix_structured_keep_oa/'  
+
+for i in range(1, 21):
+    filename = os.path.join(folder_path, f"mix_structured_data_1M_random_{i}.json")
+    print(f"Processing: {filename}")
+    with open(filename, 'r', encoding='utf-8') as f:
         data = json.load(f)
-        if isinstance(data, list):  # Nếu dữ liệu là danh sách, thêm vào merged_data
+        if isinstance(data, list):
             merged_data.extend(data)
-        else:  # Nếu dữ liệu là dictionary, đưa vào danh sách
+        elif isinstance(data, dict):
             merged_data.append(data)
+        else:
+            print(f"Unknown format in file: {filename}")
 
-# Ghi dữ liệu hợp nhất vào file mới
-with open("results/2nd_prompt/mix_structured_data_300.json", "w", encoding="utf-8") as f:
-    json.dump(merged_data, f, indent=4, ensure_ascii=False)
-
-print("Đã gộp xong các file JSON vào merged_data.json")
+# Save merged data
+with open('results/1M_random/mix_structured_data_OAs_1M_random_keep_OA.json', 'w', encoding='utf-8') as f:
+    json.dump(merged_data, f, ensure_ascii=False, indent=2)

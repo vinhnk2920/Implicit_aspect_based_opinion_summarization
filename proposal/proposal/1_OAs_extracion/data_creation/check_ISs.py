@@ -1,7 +1,7 @@
 import json
 
-input_file = "results/1M/extracted_OAs/extracted_OAs_900k.json"
-output_file = "results/1M/checked_ISs.json"
+input_file = "results/1M_random/extracted_OAs_1M_random.json"
+output_file = "results/1M_random/checked_ISs.json"
 
 # Load the data
 with open(input_file, "r", encoding="utf-8") as f:
