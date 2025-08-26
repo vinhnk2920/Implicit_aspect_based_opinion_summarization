@@ -3,7 +3,7 @@ import numpy as np
 
 # Tên các biến thể rút gọn cho chú thích
 variants = [
-    "Our Proposal", 
+    "Full Model", 
     "OA Ablation", 
     "OA LLM Ablation", 
     "IS Ablation", 
