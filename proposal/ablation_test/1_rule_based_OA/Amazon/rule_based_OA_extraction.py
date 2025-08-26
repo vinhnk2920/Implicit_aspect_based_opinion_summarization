@@ -38,13 +38,13 @@ def extract_aspect_opinion_pairs(review):
     return aspect_opinion_pairs
 
 # === FILE PATHS === #
-input_file = "results/amazon_training_500k_filtered.json"
+input_file = "results/amazon_training_500k_filtered.jsonl"
 output_file = "results/extracted_OAs_amazon_500k.json"
 filtered_output_file = "results/extracted_OAs_filtered_amazon_500k.json"
 
-# === PROCESS FULL JSON LIST === #
+# === PROCESS FULL JSONL LIST === #
 with open(input_file, "r", encoding="utf-8") as f:
-    data = json.load(f)
+    data = [json.loads(line) for line in f]  # dùng cho .jsonl
 
 results = []
 for i, review in enumerate(tqdm(data, desc="🔍 Extracting OA pairs")):

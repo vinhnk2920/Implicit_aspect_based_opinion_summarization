@@ -4,7 +4,7 @@ import os
 merged_data = []
 
 # Adjust this path if files are in a subfolder
-folder_path = 'results/filtered_sampling/'  
+folder_path = 'results/sampling/'  
 
 for i in range(1, 6):
     filename = os.path.join(folder_path, f"mix_structured_data_amazon_{i}.json")
