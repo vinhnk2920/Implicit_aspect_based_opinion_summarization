@@ -2,7 +2,7 @@ import json
 import torch
 import spacy
 from rouge import Rouge  # Library for ROUGE evaluation
-from model_2 import DualEncoderBART  # Import the updated model
+from model import DualEncoderBART  # Import the updated model
 
 # Load spaCy model for extracting aspect-opinion pairs
 nlp = spacy.load("en_core_web_trf")
@@ -19,7 +19,7 @@ def extract_aspect_opinion_pairs(sentence):
     return aspect_opinion_pairs
 
 # Initialize model and tokenizer
-model_path = "trained_model_2"
+model_path = "trained_model_1m_random_keep_OA"
 model = DualEncoderBART()
 model.load(model_path)
 print("Model loaded successfully.")
@@ -30,6 +30,7 @@ model.to(device)
 model.eval()
 
 # Load test data
+# test_file = "dev_data.json"
 test_file = "test_data.json"
 with open(test_file, "r", encoding="utf-8") as f:
     test_data = json.load(f)
@@ -70,13 +71,14 @@ for entry in test_data:
 
     # Generate summary
     with torch.no_grad():
-        predicted_summary = model.generate(oas_input, iss_input, max_length=256, num_beams=5)
+        predicted_summary = model.generate(oas_input, iss_input, max_length=256, min_length=100, num_beams=5)
     
     print("\n===== Generated Summary =====")
     print(predicted_summary)
     
     # Calculate ROUGE score
     rouge_score = rouge_evaluator.get_scores(predicted_summary, summary, avg=True)
+    print(rouge_score)
     rouge_scores.append(rouge_score)
 
     extracted_results.append({
@@ -89,7 +91,7 @@ for entry in test_data:
     })
 
 # Save results to a JSON file
-output_file = "generated_results.json"
+output_file = "generated_results_keep_OA.json"
 with open(output_file, "w", encoding="utf-8") as f:
     json.dump(extracted_results, f, ensure_ascii=False, indent=4)
 

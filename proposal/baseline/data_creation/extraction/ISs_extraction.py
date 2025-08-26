@@ -1,7 +1,7 @@
 import json
 
 # Load data từ file đã merge
-with open('results/extracted_OAs_1M.json', 'r', encoding='utf-8') as f:
+with open('results/extracted_OAs_1M_random.json', 'r', encoding='utf-8') as f:
     all_reviews = json.load(f)
 
 # Lọc các review không có opinion_aspect_pairs hoặc có mà rỗng, chỉ lấy text
@@ -12,7 +12,7 @@ implicit_reviews = [
 ]
 
 # Ghi danh sách text ra file mới
-with open('results/extracted_ISs_1M.json', 'w', encoding='utf-8') as f:
+with open('results/extracted_ISs_1M_random.json', 'w', encoding='utf-8') as f:
     json.dump(implicit_reviews, f, ensure_ascii=False, indent=2)
 
 print(f"✅ Đã lưu {len(implicit_reviews)} đoạn text review vào extracted_ISs_1M.json")

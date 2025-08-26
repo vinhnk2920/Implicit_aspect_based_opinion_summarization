@@ -63,7 +63,7 @@ class DualEncoderBART(nn.Module):
 
         return decoder_outputs.logits
 
-    def generate(self, oas_input, iss_input, max_length=256, num_beams=5):
+    def generate(self, oas_input, iss_input, max_length=256, min_length=100, num_beams=5):
         """
         Generate a summary using the dual encoder.
         """
@@ -93,6 +93,7 @@ class DualEncoderBART(nn.Module):
             encoder_outputs=encoder_output,
             attention_mask=oas_input["attention_mask"],  
             max_length=max_length,
+            min_length=min_length,
             do_sample=True,
             early_stopping=True
         )
@@ -181,9 +182,9 @@ def train_model(model, dataloader, optimizer, num_epochs, device):
 
 
 if __name__ == "__main__":
-    train_file = "../data_creation/results/sampling/mix_structured_data_300.json"
+    train_file = "../data_creation/sampling/results/mix_structured_data_1M_random_keep_OA.json"
     test_file = "test_data.json"
-    model_path = "trained_model_1"
+    model_path = "trained_model_1m_random_keep_OA"
 
     with open(train_file, "r", encoding="utf-8") as f:
         data = json.load(f)
